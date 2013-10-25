@@ -1,0 +1,48 @@
+* compilation-setup
+** Usage
+   More often than not, you are working on more than one projects
+   simultaneously, and even if you aren't usually you don't want emacs
+   to do something different when told to recompile depending on the
+   current buffer. This problem is being solved by compilation setups.
+
+   Run a compilation then do =cs-save= in the buffer where the
+   compilation makes sense and the same compilation will be run each
+   time you run =cs-recompile-wrapper=.
+
+   If you want more than one files to automatically share compilations
+   you can use the local variable =cs-key-set= which will prompt for a
+   key that can be any string (it can be something meaningful like
+   'kernel' or previously saved key which is a path). =cs-key= is a
+   buffer local variable and can be set though =.dir-locals.el= to have
+   a common key for compiling a directory. If the compilation setup
+   changes (via =cs-save= for example) the setup changes for all
+   buffers that share the same key.
+
+** Installation
+*** Manual
+    Clone the repo somewhere and add that to your load path.
+
+#+BEGIN_SRC
+(add-to-list 'load-path "/path/to/compilation-setup/")
+#+END_SRC
+
+*** el-get
+    If you are not using it already I highly recommend using [[https://github.com/dimitri/el-get/][el-get]]. I
+    will be making a pull request shortly but until then you can add
+    this to your =el-get-sources=
+
+#+BEGIN_SRC
+(:name compilation-setup.el
+	  :description "Recompile does what you mean."
+	  :type github
+	  :pkgname "fakedrake/compilation-setup.el"
+#+END_SRC
+
+*** Setup
+    Add this to your =.emacs= (or =init.el=)
+
+#+BEGIN_SRC
+(require 'compilation-setup)
+(global-set-key (kbd "C-c r") 'cs-recompile-wrapper)
+(global-set-key (kbd "C-c c s") 'cs-compilation-setup-save)
+#+END_SRC
