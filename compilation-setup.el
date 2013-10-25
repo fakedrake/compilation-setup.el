@@ -37,8 +37,8 @@
    (list (completing-read "Key for current setup: " compilation-setups)
 	 (yes-or-no-p (format
 		       "Bind the current setup (cmd:'%s' dir:'%s) to the key?"
-		       (car (cs-current-compilation-setup))
-		       (cdr (cs-current-compilation-setup))))))
+		       (car (cs-current-setup))
+		       (cdr (cs-current-setup))))))
   (let* ((old-key (cs-current-key))
 	 (old-setup (cs-current-setup)))
     (cs-delete-setup old-key)
@@ -51,12 +51,6 @@
   (let ((dk (or key (cs-current-key))))
     (delete-if (lambda (x) (string= dk (car x))) compilation-setups)))
 
-(defun cs-recompile ()
-  "Run `recompile' and message with what you did."
-  (call-interactively 'recompile)
-  (message "Compiling with: cmd: '%s', dir: '%s'"
-	   compile-command compilation-directory))
-
 (defun cs-current-key ()
   "The key to be used if a lookup is performed."
   (or cs-key (buffer-file-name) (buffer-name)))
@@ -68,16 +62,22 @@
   default."
   (let ((lu-name (or key (cs-current-key))))
     (or (when lu-name (cdr (assoc lu-name compilation-setups)))
-	(when nil-on-fail (cons compile-command compilation-directory)))))
+	(unless nil-on-fail (cons compile-command compilation-directory)))))
+
+(defun cs-recompile ()
+  "Run `recompile' and message with what you did."
+  (call-interactively 'recompile)
+  (message "Compiling with: cmd: '%s', dir: '%s'"
+	   compile-command compilation-directory))
 
 (defun cs-recompile-wrapper ()
   "Run `recompile' but switch to a local compilation setup from
 `compilation-setups' if you find one."
   (interactive)
-  (let ((setup cs-current-setup)
+  (let* ((setup (cs-current-setup))
 	(compile-command (car setup))
 	(compilation-direcory (cdr setup)))
-    (verbose-recompile)))
+    (cs-recompile)))
 
 (defun cs-save (&optional setup-key setup-command setup-dir)
   "Save the compilation setup and bind it to current buffer
@@ -89,7 +89,7 @@ SETUP-COMMAND and SETUP-DIR."
   (interactive)
   (let ((key (or setup-key (cs-current-key)))
 	(val (cons (or setup-command compile-command)
-		   (or setup-directory compilation-directory))))
+		   (or setup-dir compilation-directory))))
     (if (assoc key compilation-setups)
 	(setf (cdr (assoc key compilation-setups)) val)
       (add-to-list 'compilation-setups (cons key val)))
@@ -103,8 +103,5 @@ would be run on recompile."
   (let ((setup (or setup (cs-current-setup))))
     (setq compile-command (car setup))
     (setq compilation-directory (cdr setup))))
-
-(global-set-key (kbd "C-c r") 'cs-recompile-wrapper)
-(global-set-key (kbd "C-c c s") 'cs-compilation-setup-save)
 
 (provide 'compilation-setup)
