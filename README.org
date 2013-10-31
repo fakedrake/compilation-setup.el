@@ -55,3 +55,5 @@
    - cs-compile to control in what context the compile command will
      get/set the status (global or local). Also this should prompt for
      current directory if not in dired mode.
+   - Recompile should warn when attempting to recompile in a different
+     dir than the `compilation-directory' with the global setup.
