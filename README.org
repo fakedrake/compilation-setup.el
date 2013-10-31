@@ -52,3 +52,6 @@
 
    - Modeline information on wether the current buffer has a saved
      compilation setup.
+   - cs-compile to control in what context the compile command will
+     get/set the status (global or local). Also this should prompt for
+     current directory if not in dired mode.
