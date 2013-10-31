@@ -23,8 +23,7 @@
 ;; smarter and more interactive way.
 
 (require 's)
-
-(eval-when-compile (require 'cl))
+(require 'cl)
 
 (defvar compilation-setups nil
   "alist with compilation setups. The format of each item is (KEY
