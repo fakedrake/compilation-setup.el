@@ -46,3 +46,9 @@
 (global-set-key (kbd "C-c r") 'cs-recompile-wrapper)
 (global-set-key (kbd "C-c c s") 'cs-compilation-setup-save)
 #+END_SRC
+
+** Roadmap
+   Things to expect from this in the future.
+
+   - Modeline information on wether the current buffer has a saved
+     compilation setup.
