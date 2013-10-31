@@ -17,6 +17,10 @@
 ;; a common key for compiling a directory. If the compilation setup
 ;; changes (via `cs-save' for example) the setup changes for all
 ;; buffers that share the same key.
+;;
+;; You can run `cs-delete-setup' to remove the current saved setup and
+;; there is the `cs-compile-wrapper' that will run compile in a
+;; smarter and more interactive way.
 
 (require 's)
 
