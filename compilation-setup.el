@@ -74,21 +74,27 @@
     (or (when lu-name (cdr (assoc lu-name compilation-setups)))
 	(unless nil-on-fail (cons compile-command compilation-directory)))))
 
-(defun cs-compile (&optional local dir)
+(defun cs-compile ()
+  "Compile with shell and everything"
+  (universal-argument)
+  (call-interactively 'compile))
+
+(defun cs-compile-wrapper (&optional local dir)
   "Run compile but be smart about the context. Non-nil LOCAL will
-  update the local commands for this compilation."
+  update the local commands for this compilation. Compile in DIR
+  in any case."
   (interactive
    (list (y-or-n-p "Compile updating local setup? ")
 	 (ido-read-directory-name "Compilation directory: ")))
-  (let* ((default-directory dir)
-	 (setup (cs-current-setup))
-	 ;; Use local setup
-	 (compile-command (if local (car setup) compile-command))
-	 (compilation-directory (if local (cdr setup) compilation-directory)))
-    (universal-argument)
-    (call-interactively 'compile)
-    ;; Change the local env
-    (when local (cs-save))))
+  (let ((default-dir dir))
+    (if local
+	(let* ((setup (cs-current-setup))
+	       ;; Use local setup
+	       (compile-command (car setup))
+	       (compilation-directory (cdr setup)))
+	  (cs-compile)
+	  (cs-save))
+      (cs-compile))))
 
 
 (defun cs-recompile ()
@@ -108,9 +114,9 @@
   (interactive)
   (let* ((setup (cs-current-setup))
 	 (global-recompile (cs-current-setup-p setup)) ;setup is
-						       ;current
-						       ;without
-						       ;setting
+					;current
+					;without
+					;setting
 	 (compile-command (car setup))
 	 (compilation-direcory (cdr setup)))
     (when (or (null global-recompile)
