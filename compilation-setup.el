@@ -18,6 +18,10 @@
 ;; changes (via `cs-save' for example) the setup changes for all
 ;; buffers that share the same key.
 
+(require 's)
+
+(eval-when-compile (require 'cl))
+
 (defvar compilation-setups nil
   "alist with compilation setups. The format of each item is (KEY
   . (COMMAND . DIRECTORY)) where KEY is the first non-nil of the
@@ -48,8 +52,14 @@
 (defun cs-delete-setup (&optional key)
   "Delete the current cs setup."
   (interactive)
-  (let ((dk (or key (cs-current-key))))
-    (delete-if (lambda (x) (string= dk (car x))) compilation-setups)))
+
+  (let ((setup (cs-current-setup))
+	(dk (or key (cs-current-key))))
+    (if (null (assoc dk compilation-setups))	; On global setup
+	(message "No saved setup.")
+      (message "Unpinning setup cmd: %s dir: %s" (car setup) (cdr setup))
+      (setq compilation-setups
+	    (delete-if (lambda (x) (string= dk (car x))) compilation-setups)))))
 
 (defun cs-current-key ()
   "The key to be used if a lookup is performed."
@@ -64,20 +74,53 @@
     (or (when lu-name (cdr (assoc lu-name compilation-setups)))
 	(unless nil-on-fail (cons compile-command compilation-directory)))))
 
+(defun cs-compile (&optional local dir)
+  "Run compile but be smart about the context. Non-nil LOCAL will
+  update the local commands for this compilation."
+  (interactive
+   (list (y-or-n-p "Compile updating local setup? ")
+	 (ido-read-directory-name "Compilation directory: ")))
+  (let* ((default-directory dir)
+	 (setup (cs-current-setup))
+	 ;; Use local setup
+	 (compile-command (if local (car setup) compile-command))
+	 (compilation-directory (if local (cdr setup) compilation-directory)))
+    (universal-argument)
+    (call-interactively 'compile)
+    ;; Change the local env
+    (when local (cs-save))))
+
+
 (defun cs-recompile ()
   "Run `recompile' and message with what you did."
   (call-interactively 'recompile)
   (message "Compiling with: cmd: '%s', dir: '%s'"
 	   compile-command compilation-directory))
 
+(defun cs-current-setup-p (setup)
+  "nil if setup is not the current."
+  (and (string= compile-command (car setup))
+       (string= compilation-directory (cdr setup))))
+
 (defun cs-recompile-wrapper ()
   "Run `recompile' but switch to a local compilation setup from
 `compilation-setups' if you find one."
   (interactive)
   (let* ((setup (cs-current-setup))
-	(compile-command (car setup))
-	(compilation-direcory (cdr setup)))
-    (cs-recompile)))
+	 (global-recompile (cs-current-setup-p setup)) ;setup is
+						       ;current
+						       ;without
+						       ;setting
+	 (compile-command (car setup))
+	 (compilation-direcory (cdr setup)))
+    (when (or (null global-recompile)
+	      (or (string-prefix-p (file-truename compilation-direcory)
+				   (file-truename buffer-file-name))
+		  (y-or-n-p
+		   (format
+		    "Global recompile in not-current dir (compilation dir: %s)? "
+		    compilation-direcory))))
+      (cs-recompile))))
 
 (defun cs-save (&optional setup-key setup-command setup-dir)
   "Save the compilation setup and bind it to current buffer
