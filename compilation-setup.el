@@ -89,7 +89,7 @@
   (interactive
    (list (y-or-n-p "Compile updating local setup? ")
 	 (ido-read-directory-name "Compilation directory: ")))
-  (let ((default-dir dir))
+  (let ((default-directory dir))
     (if local
 	(let* ((setup (cs-current-setup))
 	       ;; Use local setup
