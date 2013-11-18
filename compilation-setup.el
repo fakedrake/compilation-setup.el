@@ -59,7 +59,7 @@
   (let ((setup (cs-current-setup))
 	(dk (or key (cs-current-key))))
     (if (null (assoc dk compilation-setups))	; On global setup
-	(message "No saved setup.")
+	(message "No saved setup to delete.")
       (message "Unpinning setup cmd: %s dir: %s" (car setup) (cdr setup))
       (setq compilation-setups
 	    (delete-if (lambda (x) (string= dk (car x))) compilation-setups)))))
@@ -121,7 +121,7 @@
 					;without
 					;setting
 	 (compile-command (car setup))
-	 (compilation-directory (cdr setup)))
+	 (compilation-directory (or (cdr setup) default-directory)))
     (when (or (null global-recompile)
 	      (or (string-prefix-p (file-truename compilation-directory)
 				   (file-truename buffer-file-name))
