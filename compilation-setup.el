@@ -121,14 +121,14 @@
 					;without
 					;setting
 	 (compile-command (car setup))
-	 (compilation-direcory (cdr setup)))
+	 (compilation-directory (cdr setup)))
     (when (or (null global-recompile)
-	      (or (string-prefix-p (file-truename compilation-direcory)
+	      (or (string-prefix-p (file-truename compilation-directory)
 				   (file-truename buffer-file-name))
 		  (y-or-n-p
 		   (format
 		    "Global recompile in not-current dir (compilation dir: %s)? "
-		    compilation-direcory))))
+		    compilation-directory))))
       (cs-recompile))))
 
 (defun cs-save (&optional setup-key setup-command setup-dir)
