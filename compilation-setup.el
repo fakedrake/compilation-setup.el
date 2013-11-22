@@ -79,8 +79,8 @@
 
 (defun cs-compile ()
   "Compile with shell and everything"
-  (universal-argument)
-  (call-interactively 'compile))
+  (let ((current-prefix-arg '(t)))
+    (call-interactively 'compile)))
 
 (defun cs-compile-wrapper (&optional local dir)
   "Run compile but be smart about the context. Non-nil LOCAL will
@@ -102,7 +102,8 @@
 
 (defun cs-recompile ()
   "Run `recompile' and message with what you did."
-  (call-interactively 'recompile)
+  (let ((default-directory compilation-directory))
+    (compilation-start compile-command t))
   (message "Compiling with: cmd: '%s', dir: '%s'"
 	   compile-command compilation-directory))
 
@@ -121,10 +122,11 @@
 					;without
 					;setting
 	 (compile-command (car setup))
-	 (compilation-directory (or (cdr setup) default-directory)))
+	 (compilation-directory (or (cdr setup) default-directory))
+	 (fname (or buffer-file-name "")))
     (when (or (null global-recompile)
 	      (or (string-prefix-p (file-truename compilation-directory)
-				   (file-truename buffer-file-name))
+				   (file-truename fname))
 		  (y-or-n-p
 		   (format
 		    "Global recompile in not-current dir (compilation dir: %s)? "
