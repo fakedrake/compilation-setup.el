@@ -36,30 +36,45 @@
   non-nil. You may want to put this in .local-dirs.el so all
   files in a project share the same compilation key.")
 
+(defmacro cs-message-state (&optional always)
+  "Show a message of state. Only works in a top level interactive
+function unless ALWAYS is non-nill."
+  `(when (or ,always (called-interactively-p))
+     (message "Now using key '%s' (cmd:'%s' dir:'%s)"
+	      cs-key
+	      (car (cs-current-setup))
+	      (cdr (cs-current-setup)))))
+
 (defun cs-key-set (key keep-setup)
   "Set the compilation key for current buffer. Complete with
   existing keys. If keep-setup is non-nil bind the current
   setup (default or saved) to the local key."
   (interactive
-   (list (completing-read "Key for current setup: " compilation-setups)
-	 (yes-or-no-p (format
-		       "Bind the current setup (cmd:'%s' dir:'%s) to the key?"
-		       (car (cs-current-setup))
-		       (cdr (cs-current-setup))))))
+   (let* ((key (ido-completing-read "Key for current setup: "
+				    (mapcar 'car compilation-setups)))
+	  (keep (yes-or-no-p
+		 (format
+		  "Bind the current setup (cmd:'%s' dir:'%s) to the '%s'?"
+		  (car (cs-current-setup))
+		  (cdr (cs-current-setup))
+		  key))))
+     (list key keep)))
+
   (let* ((old-key (cs-current-key))
 	 (old-setup (cs-current-setup)))
     (cs-delete-setup old-key)
     (setq-local cs-key key)
-    (when keep-setup (cs-save key (car old-setup) (cdr old-setup)))))
+    (when keep-setup
+      (cs-save key (car old-setup) (cdr old-setup)))
+    (cs-message-state)))
 
 (defun cs-delete-setup (&optional key)
   "Delete the current cs setup."
   (interactive)
-
   (let ((setup (cs-current-setup))
 	(dk (or key (cs-current-key))))
     (if (null (assoc dk compilation-setups))	; On global setup
-	(message "No saved setup to delete.")
+	(when (called-interactively-p) (message "No saved setup to delete."))
       (message "Unpinning setup cmd: %s dir: %s" (car setup) (cdr setup))
       (setq compilation-setups
 	    (delete-if (lambda (x) (string= dk (car x))) compilation-setups)))))
