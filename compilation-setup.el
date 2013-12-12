@@ -173,4 +173,14 @@ would be run on recompile."
     (setq compile-command (car setup))
     (setq compilation-directory (cdr setup))))
 
+(defun cs-last-error ()
+  "Jump to last error. This is not specific to
+compilation-setup."
+  (interactive)
+  (while (not
+	  (eq (condition-case err
+		      (next-error)
+		    (error 'cs-last-error-here))
+	      'cs-last-error-here))))
+
 (provide 'compilation-setup)
